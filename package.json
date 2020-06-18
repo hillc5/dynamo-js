@@ -13,5 +13,8 @@
     "dynamo"
   ],
   "author": "Charles Hill",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.699.0"
+  }
 }
