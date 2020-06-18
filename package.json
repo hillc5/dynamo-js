@@ -1,0 +1,17 @@
+{
+  "name": "dynamo-js",
+  "version": "0.0.1",
+  "description": "Dynamodb client for javascript",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "dynamodb",
+    "aws",
+    "javascript",
+    "dynamo"
+  ],
+  "author": "Charles Hill",
+  "license": "ISC"
+}
