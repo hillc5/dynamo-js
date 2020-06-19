@@ -16,5 +16,8 @@
   "license": "ISC",
   "dependencies": {
     "aws-sdk": "^2.699.0"
+  },
+  "devDependencies": {
+    "prettier": "^2.0.5"
   }
 }
