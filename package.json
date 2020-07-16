@@ -1,23 +1,24 @@
 {
-  "name": "dynamo-js",
-  "version": "0.0.1",
-  "description": "Dynamodb client for javascript",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [
-    "dynamodb",
-    "aws",
-    "javascript",
-    "dynamo"
-  ],
-  "author": "Charles Hill",
-  "license": "ISC",
-  "dependencies": {
-    "aws-sdk": "^2.699.0"
-  },
-  "devDependencies": {
-    "prettier": "^2.0.5"
-  }
+    "name": "dynamo-js",
+    "version": "0.0.1",
+    "description": "Dynamodb client for javascript",
+    "main": "index.js",
+    "scripts": {
+        "test": "tap -R specy -w"
+    },
+    "keywords": [
+        "dynamodb",
+        "aws",
+        "javascript",
+        "dynamo"
+    ],
+    "author": "Charles Hill",
+    "license": "ISC",
+    "dependencies": {
+        "aws-sdk": "^2.699.0"
+    },
+    "devDependencies": {
+        "prettier": "^2.0.5",
+        "tap": "^14.10.7"
+    }
 }
