@@ -1,4 +1,5 @@
 const tap = require('tap');
+const util = require('util');
 
 const { incrementCharacter, getMapKeyFromValue } = require('../utils');
 
@@ -20,15 +21,17 @@ tap.test('getMapKeyFromValue', t => {
         [['a', 'b', 'c'], 42],
         [3, 'duplicate_value'],
         [4, 'duplicate_value'],
+        [5, { S: 'Test' }],
+        [6, [({ N: 42 }, { N: 23 })]],
     ];
 
     const m = new Map(keysAndValues);
 
     keysAndValues.forEach(([k, v]) => {
         if (v === 'duplicate_value') {
-            t.equal(getMapKeyFromValue(v, m), 3, `${v} should return 3`);
+            t.equal(getMapKeyFromValue(v, m), 3, `${util.inspect(v)} should return 3`);
         } else {
-            t.equal(getMapKeyFromValue(v, m), k, `${v} should return ${k}`);
+            t.equal(getMapKeyFromValue(v, m), k, `${util.inspect(v)} should return ${k}`);
         }
     });
 

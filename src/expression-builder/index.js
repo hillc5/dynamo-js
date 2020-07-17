@@ -20,6 +20,7 @@ const {
     ADD,
     DELETE,
     PREFIX,
+    DATA_TYPES,
 } = require('./constants');
 
 const { incrementCharacter, getMapKeyFromValue } = require('./utils');
@@ -28,18 +29,21 @@ class ExpressionBuilder {
     #attributeNames = new Map();
     #attributeValues = new Map();
     #keys = new Map();
+
     #expressionTokens = [];
     #filterTokens = [];
+
     #setTokens = [];
     #removeTokens = [];
     #addTokens = [];
     #deleteTokens = [];
     #projectionTokens = new Set();
+
     #attrCode = 'a';
     #valCode = 'a';
     #isFilterExpression = false;
 
-    #__getAttrHash = attr => {
+    #__getNameHash = attr => {
         let hash = getMapKeyFromValue(attr, this.#attributeNames);
         if (!hash) {
             hash = `#${PREFIX}_${this.#attrCode}`;
@@ -49,27 +53,14 @@ class ExpressionBuilder {
         return hash;
     };
 
-    #__getValHash = val => {
-        const hash = `:${PREFIX}_${this.#valCode}`;
-        this.#valCode = incrementCharacter(this.#valCode);
-
-        return hash;
-    };
-
-    #__addToken = token => {
-        const tokenList = this.#isFilterExpression ? this.#filterTokens : this.#expressionTokens;
-        tokenList.push(token);
-        return this;
-    };
-
-    #__getUpdateAttrHash = attr => {
+    #__getAttrHash = attr => {
         const regex = /\[\d+\]/g;
 
         return attr
             .split('.')
             .map(attr => {
                 const attrName = attr.replace(regex, '');
-                const hash = this.#__getAttrHash(attrName);
+                const hash = this.#__getNameHash(attrName);
 
                 const indices = attr.match(regex);
                 // Set attribute name to be keyed off of hash  and value without any indices
@@ -81,14 +72,42 @@ class ExpressionBuilder {
             .join('.');
     };
 
+    #__getValHash = val => {
+        let hash = getMapKeyFromValue(converter.input(val), this.#attributeValues);
+        if (!hash) {
+            hash = `:${PREFIX}_${this.#valCode}`;
+
+            this.#valCode = incrementCharacter(this.#valCode);
+            this.#attributeValues.set(hash, converter.input(val));
+        }
+
+        return hash;
+    };
+
+    #__addAttribute = attr => {
+        const hash = this.#__getAttrHash(attr);
+        return this.#__addToken(hash);
+    };
+
+    #__addToken = token => {
+        const tokenList = this.#isFilterExpression ? this.#filterTokens : this.#expressionTokens;
+        tokenList.push(token);
+        return this;
+    };
+
     #__getUpdateExpression = (tokens, operation) => {
         return tokens.length ? `${operation} ${tokens.join(', ')} ` : '';
     };
 
     #__addTokenAndValue = (token, val) => {
         const hash = this.#__getValHash(val);
-        this.#attributeValues.set(hash, converter.input(val));
         return this.#__addToken(token).#__addToken(hash);
+    };
+
+    #__addAttributeTypeToken = (attr, type) => {
+        const attrHash = this.#__getAttrHash(attr);
+        const typeHash = this.#__getValHash(type);
+        return this.#__addToken(`attribute_type(${attrHash}, ${typeHash})`);
     };
 
     constructor(tableName) {
@@ -97,62 +116,30 @@ class ExpressionBuilder {
         this.tableName = tableName;
     }
 
-    Attr(attr) {
-        const hash = this.#__getAttrHash(attr);
-        this.#attributeNames.set(hash, attr);
-        return this.#__addToken(hash);
+    EQ(attr, val) {
+        return this.#__addAttribute(attr).#__addTokenAndValue(EQ, val);
     }
 
-    AttrExists(attr) {
-        const hash = this.#__getAttrHash(attr);
-        this.#attributeNames.set(hash, attr);
-        return this.#__addToken(`attribute_exists(${hash})`);
+    LT(attr, val) {
+        return this.#__addAttribute(attr).#__addTokenAndValue(LT, val);
     }
 
-    AttrNotExists(attr) {
-        const hash = this.#__getAttrHash(attr);
-        this.#attributeNames.set(hash, attr);
-        return this.#__addToken(`attribute_not_exists(${hash})`);
+    GT(attr, val) {
+        return this.#__addAttribute(attr).#__addTokenAndValue(GT, val);
     }
 
-    Contains(attr, val) {
-        const attr_hash = this.#__getAttrHash(attr);
-        const val_hash = this.#__getValHash(val);
-        this.#attributeNames.set(attr_hash, attr);
-        this.#attributeValues.set(val_hash, val);
-        return this.#__addToken(`contains(${attr_hash}, ${val_hash})`);
+    LE(attr, val) {
+        return this.#__addAttribute(attr).#__addTokenAndValue(LE, val);
     }
 
-    BeginsWith(attr, val) {
-        const attr_hash = this.#__getAttrHash(attr);
-        const val_hash = this.#__getValHash(val);
-        this.#attributeNames.set(attr_hash, attr);
-        this.#attributeValues.set(val_hash, val);
-        return this.#__addToken(`begins_with(${attr_hash}, ${val_hash})`);
+    GE(attr, val) {
+        return this.#__addAttribute(attr).#__addTokenAndValue(GE, val);
     }
 
-    EQ(val) {
-        return this.#__addTokenAndValue(EQ, val);
-    }
-
-    LT(val) {
-        return this.#__addTokenAndValue(LT, val);
-    }
-
-    GT(val) {
-        return this.#__addTokenAndValue(GT, val);
-    }
-
-    LE(val) {
-        return this.#__addTokenAndValue(LE, val);
-    }
-
-    GE(val) {
-        return this.#__addTokenAndValue(GE, val);
-    }
-
-    BETWEEN(val1, val2) {
-        return this.#__addTokenAndValue(BETWEEN, val1).#__addTokenAndValue(AND, val2);
+    BETWEEN(attr, val1, val2) {
+        return this.#__addAttribute(attr)
+            .#__addTokenAndValue(BETWEEN, val1)
+            .#__addTokenAndValue(AND, val2);
     }
 
     AND() {
@@ -169,6 +156,68 @@ class ExpressionBuilder {
 
     GroupEnd() {
         return this.#__addToken(GROUP_END);
+    }
+
+    AttrExists(attr) {
+        const hash = this.#__getAttrHash(attr);
+        return this.#__addToken(`attribute_exists(${hash})`);
+    }
+
+    AttrNotExists(attr) {
+        const hash = this.#__getAttrHash(attr);
+        return this.#__addToken(`attribute_not_exists(${hash})`);
+    }
+
+    Contains(attr, val) {
+        const attrHash = this.#__getAttrHash(attr);
+        const valHash = this.#__getValHash(val);
+        return this.#__addToken(`contains(${attrHash}, ${valHash})`);
+    }
+
+    BeginsWith(attr, val) {
+        const attrHash = this.#__getAttrHash(attr);
+        const valHash = this.#__getValHash(val);
+        return this.#__addToken(`begins_with(${attrHash}, ${valHash})`);
+    }
+
+    AssertStringType(attr) {
+        return this.#__addAttributeTypeToken(attr, DATA_TYPES.STRING);
+    }
+
+    AssertStringSetType(attr) {
+        return this.#__addAttributeTypeToken(attr, DATA_TYPES.STRING_SET);
+    }
+
+    AssertNumberType(attr) {
+        return this.#__addAttributeTypeToken(attr, DATA_TYPES.NUMBER);
+    }
+
+    AssertNumberSetType(attr) {
+        return this.#__addAttributeTypeToken(attr, DATA_TYPES.NUMBER_SET);
+    }
+
+    AssertBinaryType(attr) {
+        return this.#__addAttributeTypeToken(attr, DATA_TYPES.BINARY);
+    }
+
+    AssertBinarySetType(attr) {
+        return this.#__addAttributeTypeToken(attr, DATA_TYPES.BINARY_SET);
+    }
+
+    AssertBooleanType(attr) {
+        return this.#__addAttributeTypeToken(attr, DATA_TYPES.BOOLEAN);
+    }
+
+    AssertNullType(attr) {
+        return this.#__addAttributeTypeToken(attr, DATA_TYPES.NULL);
+    }
+
+    AssertListType(attr) {
+        return this.#__addAttributeTypeToken(attr, DATA_TYPES.LIST);
+    }
+
+    AssertMapType(attr) {
+        return this.#__addAttributeTypeToken(attr, DATA_TYPES.MAP);
     }
 
     FilterStart() {
@@ -190,68 +239,64 @@ class ExpressionBuilder {
     }
 
     Set(attr, val) {
-        const attr_hash = this.#__getUpdateAttrHash(attr);
-        const val_hash = this.#__getValHash(val);
+        const attrHash = this.#__getAttrHash(attr);
+        const valHash = this.#__getValHash(val);
 
-        this.#setTokens.push(`${attr_hash} ${EQ} ${val_hash}`);
-        this.#attributeValues.set(val_hash, converter.input(val));
+        this.#setTokens.push(`${attrHash} ${EQ} ${valHash}`);
 
         return this;
     }
 
     SetPlus(attr, val) {
-        const attr_hash = this.#__getUpdateAttrHash(attr);
-        const val_hash = this.#__getValHash(val);
+        const attrHash = this.#__getAttrHash(attr);
+        const valHash = this.#__getValHash(val);
 
-        this.#setTokens.push(`${attr_hash} ${EQ} ${attr_hash} ${PLUS} ${val_hash}`);
-        this.#attributeValues.set(val_hash, converter.input(val));
+        this.#setTokens.push(`${attrHash} ${EQ} ${attrHash} ${PLUS} ${valHash}`);
 
         return this;
     }
 
     SetMinus(attr, val) {
-        const attr_hash = this.#__getUpdateAttrHash(attr);
-        const val_hash = this.#__getValHash(val);
+        const attrHash = this.#__getAttrHash(attr);
+        const valHash = this.#__getValHash(val);
 
-        this.#setTokens.push(`${attr_hash} ${EQ} ${attr_hash} ${MINUS} ${val_hash}`);
-        this.#attributeValues.set(val_hash, converter.input(val));
+        this.#setTokens.push(`${attrHash} ${EQ} ${attrHash} ${MINUS} ${valHash}`);
 
         return this;
     }
 
     Add(attr, val) {
-        const attr_hash = this.#__getUpdateAttrHash(attr);
-        const val_hash = this.#__getValHash(val);
+        const attrHash = this.#__getAttrHash(attr);
+        const valHash = this.#__getValHash(val);
 
-        this.#addTokens.push(`${attr_hash} ${val_hash}`);
-        this.#attributeValues.set(val_hash, converter.input(val));
+        this.#addTokens.push(`${attrHash} ${valHash}`);
 
         return this;
     }
 
     AddAttr(attr) {
-        const attr_hash = this.#__getAttrHash(attr);
+        const attrHash = this.#__getAttrHash(attr);
 
-        this.#addTokens.push(attr_hash);
-        this.#attributeNames.set(attr_hash, attr);
+        this.#addTokens.push(attrHash);
 
         return this;
     }
 
     RemoveAttr(attr) {
-        const attr_hash = this.#__getAttrHash(attr);
+        const attrHash = this.#__getAttrHash(attr);
 
-        this.#removeTokens.push(attr_hash);
-        this.#attributeNames.set(attr_hash, attr);
+        this.#removeTokens.push(attrHash);
 
         return this;
     }
 
     Projections(projections) {
         projections.forEach(attr => {
-            this.#projectionTokens.add(this.#__getAttrHash(attr));
-            this.#attributeNames.set(attr_hash, attr);
+            const attrHash = this.#__getAttrHash(attr);
+            this.#projectionTokens.add(attrHash);
         });
+
+        return this;
     }
 
     KeyExpression() {
@@ -327,7 +372,7 @@ class ExpressionBuilder {
         };
 
         const ExpressionAttributeValues = this.ExpressionAttributeValues();
-        if (ExpressionAttributeValues) {
+        if (Object.values(ExpressionAttributeValues).length) {
             response.ExpressionAttributeValues = ExpressionAttributeValues;
         }
 

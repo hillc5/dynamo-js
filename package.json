@@ -15,7 +15,8 @@
     "author": "Charles Hill",
     "license": "ISC",
     "dependencies": {
-        "aws-sdk": "^2.699.0"
+        "aws-sdk": "^2.699.0",
+        "lodash.isequal": "^4.5.0"
     },
     "devDependencies": {
         "prettier": "^2.0.5",

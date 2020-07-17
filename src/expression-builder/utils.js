@@ -1,3 +1,5 @@
+const isEqual = require('lodash.isequal');
+
 /**
  * incrementCharacter takes a String character and increments it's value by 1
  *
@@ -21,7 +23,7 @@ const incrementCharacter = char => String.fromCharCode(char.charCodeAt(0) + 1);
  */
 const getMapKeyFromValue = (val, map) => {
     for (let [k, v] of map.entries()) {
-        if (v === val) return k;
+        if (isEqual(v, val)) return k;
     }
 };
 

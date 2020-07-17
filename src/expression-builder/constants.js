@@ -20,6 +20,19 @@ const DELETE = 'DELETE';
 
 const PREFIX = 'eb';
 
+const DATA_TYPES = {
+    STRING: 'S',
+    STRING_SET: 'SS',
+    NUMBER: 'N',
+    NUMBER_SET: 'NS',
+    BINARY: 'B',
+    BINARY_SET: 'BS',
+    BOOLEAN: 'BOOL',
+    NULL: 'NULL',
+    LIST: 'L',
+    MAP: 'M',
+};
+
 module.exports = {
     EQ,
     PLUS,
@@ -38,4 +51,5 @@ module.exports = {
     ADD,
     DELETE,
     PREFIX,
+    DATA_TYPES,
 };
