@@ -47,10 +47,7 @@ tap.test('BuildQueryExpressions', t => {
     };
 
     t.same(
-        new ExpressionBuilder(tableName)
-            .Attr(attr1)
-            .EQ(val1)
-            .BuildQueryExpressions(),
+        new ExpressionBuilder(tableName).Attr(attr1).EQ(val1).BuildQueryExpressions(),
         expectedEQShape,
         'should include equality expressions in the key condition expression'
     );
@@ -63,10 +60,7 @@ tap.test('BuildQueryExpressions', t => {
     };
 
     t.same(
-        new ExpressionBuilder(tableName)
-            .Attr(attr1)
-            .LT(val2)
-            .BuildQueryExpressions(),
+        new ExpressionBuilder(tableName).Attr(attr1).LT(val2).BuildQueryExpressions(),
         expectedLTShape,
         'should include less than expressions in the key condition expression'
     );
@@ -79,10 +73,7 @@ tap.test('BuildQueryExpressions', t => {
     };
 
     t.same(
-        new ExpressionBuilder(tableName)
-            .Attr(attr1)
-            .GT(val2)
-            .BuildQueryExpressions(),
+        new ExpressionBuilder(tableName).Attr(attr1).GT(val2).BuildQueryExpressions(),
         expectedGTShape,
         'should include greater than expressions in the key condition expression'
     );
@@ -95,10 +86,7 @@ tap.test('BuildQueryExpressions', t => {
     };
 
     t.same(
-        new ExpressionBuilder(tableName)
-            .Attr(attr1)
-            .GE(val2)
-            .BuildQueryExpressions(),
+        new ExpressionBuilder(tableName).Attr(attr1).GE(val2).BuildQueryExpressions(),
         expectedGTEShape,
         'should include greater than or equal expressions in the key condition expression'
     );
@@ -111,10 +99,7 @@ tap.test('BuildQueryExpressions', t => {
     };
 
     t.same(
-        new ExpressionBuilder(tableName)
-            .Attr(attr1)
-            .LE(val2)
-            .BuildQueryExpressions(),
+        new ExpressionBuilder(tableName).Attr(attr1).LE(val2).BuildQueryExpressions(),
         expectedLTEShape,
         'should include less than or equal expressions in the key condition expression'
     );
@@ -146,12 +131,32 @@ tap.test('BuildQueryExpressions', t => {
     };
 
     t.same(
-        new ExpressionBuilder(tableName)
-            .Attr(attr1)
-            .BETWEEN(val2, val3)
-            .BuildQueryExpressions(),
+        new ExpressionBuilder(tableName).Attr(attr1).BETWEEN(val2, val3).BuildQueryExpressions(),
         expectedBetweenShape,
         'should produce the correct shape when using the BETWEEN function'
+    );
+
+    const attr2 = 'Some Other Attribute';
+
+    expectedFilterShape = {
+        TableName: tableName,
+        KeyConditionExpression: '#eb_a = :eb_a',
+        ExpressionAttributeNames: { '#eb_a': attr1, '#eb_b': attr2 },
+        ExpressionAttributeValues: { ':eb_a': { S: val1 }, ':eb_b': { N: val2 } },
+        FilterExpression: '#eb_b < :eb_b',
+    };
+
+    t.same(
+        new ExpressionBuilder(tableName)
+            .Attr(attr1)
+            .EQ(val1)
+            .FilterStart()
+            .Attr(attr2)
+            .LT(val2)
+            .FilterEnd()
+            .BuildQueryExpressions(),
+        expectedFilterShape,
+        'should produce the correct FilterExpression if FilterStart, FilterEnd used'
     );
 
     t.end();
