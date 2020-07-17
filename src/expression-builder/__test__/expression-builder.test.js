@@ -396,6 +396,187 @@ tap.test('BeginsWith', t => {
     t.end();
 });
 
+tap.test('Type Assertions', t => {
+    const tableName = 'Test-Table';
+    const attr1 = 'Test';
+    const attr2 = 'Other Test';
+
+    const expectedStringTypeAssertionConditionExpression = {
+        TableName: tableName,
+        ConditionExpression: 'attribute_type(#eb_a, :eb_a)',
+        ExpressionAttributeNames: { '#eb_a': attr1 },
+        ExpressionAttributeValues: { ':eb_a': { S: 'S' } },
+    };
+
+    t.same(
+        new builder(tableName).AssertStringType(attr1).BuildConditionExpression(),
+        expectedStringTypeAssertionConditionExpression,
+        'should build an attribute_type function for STRING types using expression attribute names and values'
+    );
+
+    const expectedStringSetTypeAssertionConditionExpression = {
+        TableName: tableName,
+        ConditionExpression: 'attribute_type(#eb_a, :eb_a)',
+        ExpressionAttributeNames: { '#eb_a': attr1 },
+        ExpressionAttributeValues: { ':eb_a': { S: 'SS' } },
+    };
+
+    t.same(
+        new builder(tableName).AssertStringSetType(attr1).BuildConditionExpression(),
+        expectedStringSetTypeAssertionConditionExpression,
+        'should build an attribute_type function for STRING_SET types using expression attribute names and values'
+    );
+
+    const expectedNumberTypeAssertionConditionExpression = {
+        TableName: tableName,
+        ConditionExpression: 'attribute_type(#eb_a, :eb_a)',
+        ExpressionAttributeNames: { '#eb_a': attr1 },
+        ExpressionAttributeValues: { ':eb_a': { S: 'N' } },
+    };
+
+    t.same(
+        new builder(tableName).AssertNumberType(attr1).BuildConditionExpression(),
+        expectedNumberTypeAssertionConditionExpression,
+        'should build an attribute_type function for NUMBER types using expression attribute names and values'
+    );
+
+    const expectedNumberSetTypeAssertionConditionExpression = {
+        TableName: tableName,
+        ConditionExpression: 'attribute_type(#eb_a, :eb_a)',
+        ExpressionAttributeNames: { '#eb_a': attr1 },
+        ExpressionAttributeValues: { ':eb_a': { S: 'NS' } },
+    };
+
+    t.same(
+        new builder(tableName).AssertNumberSetType(attr1).BuildConditionExpression(),
+        expectedNumberSetTypeAssertionConditionExpression,
+        'should build an attribute_type function for NUMBER_SET types using expression attribute names and values'
+    );
+
+    const expectedBinaryTypeAssertionConditionExpression = {
+        TableName: tableName,
+        ConditionExpression: 'attribute_type(#eb_a, :eb_a)',
+        ExpressionAttributeNames: { '#eb_a': attr1 },
+        ExpressionAttributeValues: { ':eb_a': { S: 'B' } },
+    };
+
+    t.same(
+        new builder(tableName).AssertBinaryType(attr1).BuildConditionExpression(),
+        expectedBinaryTypeAssertionConditionExpression,
+        'should build an attribute_type function for BINARY types using expression attribute names and values'
+    );
+
+    const expectedBinarySetTypeAssertionConditionExpression = {
+        TableName: tableName,
+        ConditionExpression: 'attribute_type(#eb_a, :eb_a)',
+        ExpressionAttributeNames: { '#eb_a': attr1 },
+        ExpressionAttributeValues: { ':eb_a': { S: 'BS' } },
+    };
+
+    t.same(
+        new builder(tableName).AssertBinarySetType(attr1).BuildConditionExpression(),
+        expectedBinarySetTypeAssertionConditionExpression,
+        'should build an attribute_type function for BINARY_SET types using expression attribute names and values'
+    );
+
+    const expectedBooleanTypeAssertionConditionExpression = {
+        TableName: tableName,
+        ConditionExpression: 'attribute_type(#eb_a, :eb_a)',
+        ExpressionAttributeNames: { '#eb_a': attr1 },
+        ExpressionAttributeValues: { ':eb_a': { S: 'BOOL' } },
+    };
+
+    t.same(
+        new builder(tableName).AssertBooleanType(attr1).BuildConditionExpression(),
+        expectedBooleanTypeAssertionConditionExpression,
+        'should build an attribute_type function for BOOLEAN types using expression attribute names and values'
+    );
+
+    const expectedNullTypeAssertionConditionExpression = {
+        TableName: tableName,
+        ConditionExpression: 'attribute_type(#eb_a, :eb_a)',
+        ExpressionAttributeNames: { '#eb_a': attr1 },
+        ExpressionAttributeValues: { ':eb_a': { S: 'NULL' } },
+    };
+
+    t.same(
+        new builder(tableName).AssertNullType(attr1).BuildConditionExpression(),
+        expectedNullTypeAssertionConditionExpression,
+        'should build an attribute_type function for NULL types using expression attribute names and values'
+    );
+
+    const expectedListTypeAssertionConditionExpression = {
+        TableName: tableName,
+        ConditionExpression: 'attribute_type(#eb_a, :eb_a)',
+        ExpressionAttributeNames: { '#eb_a': attr1 },
+        ExpressionAttributeValues: { ':eb_a': { S: 'L' } },
+    };
+
+    t.same(
+        new builder(tableName).AssertListType(attr1).BuildConditionExpression(),
+        expectedListTypeAssertionConditionExpression,
+        'should build an attribute_type function for LIST types using expression attribute names and values'
+    );
+
+    const expectedMapTypeAssertionConditionExpression = {
+        TableName: tableName,
+        ConditionExpression: 'attribute_type(#eb_a, :eb_a)',
+        ExpressionAttributeNames: { '#eb_a': attr1 },
+        ExpressionAttributeValues: { ':eb_a': { S: 'M' } },
+    };
+
+    t.same(
+        new builder(tableName).AssertMapType(attr1).BuildConditionExpression(),
+        expectedMapTypeAssertionConditionExpression,
+        'should build an attribute_type function for MAP types using expression attribute names and values'
+    );
+
+    const expectedConcatTypeAssertionConditionExpression = {
+        TableName: tableName,
+        ConditionExpression: 'attribute_type(#eb_a, :eb_a) AND attribute_type(#eb_b, :eb_a)',
+        ExpressionAttributeNames: { '#eb_a': attr1, '#eb_b': attr2 },
+        ExpressionAttributeValues: { ':eb_a': { S: 'S' } },
+    };
+
+    t.same(
+        new builder(tableName)
+            .AssertStringType(attr1)
+            .AND()
+            .AssertStringType(attr2)
+            .BuildConditionExpression(),
+        expectedConcatTypeAssertionConditionExpression,
+        'should be able to be concatenated with logical operators'
+    );
+
+    const expectedComplexAssertionConditionExpression = {
+        TableName: tableName,
+        ConditionExpression: 'attribute_type(#eb_a.#eb_b, :eb_a)',
+        ExpressionAttributeNames: { '#eb_a': attr1, '#eb_b': attr2 },
+        ExpressionAttributeValues: { ':eb_a': { S: 'M' } },
+    };
+
+    t.same(
+        new builder(tableName).AssertMapType(`${attr1}.${attr2}`).BuildConditionExpression(),
+        expectedComplexAssertionConditionExpression,
+        'should build complex attribute paths'
+    );
+
+    const expectedComplexIndexedAssertionConditionExpression = {
+        TableName: tableName,
+        ConditionExpression: 'attribute_type(#eb_a[0].#eb_b[1], :eb_a)',
+        ExpressionAttributeNames: { '#eb_a': attr1, '#eb_b': attr2 },
+        ExpressionAttributeValues: { ':eb_a': { S: 'M' } },
+    };
+
+    t.same(
+        new builder(tableName).AssertMapType(`${attr1}[0].${attr2}[1]`).BuildConditionExpression(),
+        expectedComplexIndexedAssertionConditionExpression,
+        'should build complex indexed attribute paths'
+    );
+
+    t.end();
+});
+
 tap.test('BuildQueryExpressions', t => {
     const tableName = 'test-table';
     const expectedDefaultShape = {

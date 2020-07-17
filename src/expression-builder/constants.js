@@ -20,6 +20,8 @@ const DELETE = 'DELETE';
 
 const PREFIX = 'eb';
 
+const LIST_INDEX_REG = /\[\d+\]/g;
+
 const DATA_TYPES = {
     STRING: 'S',
     STRING_SET: 'SS',
@@ -51,5 +53,6 @@ module.exports = {
     ADD,
     DELETE,
     PREFIX,
+    LIST_INDEX_REG,
     DATA_TYPES,
 };

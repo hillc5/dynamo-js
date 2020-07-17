@@ -20,6 +20,7 @@ const {
     ADD,
     DELETE,
     PREFIX,
+    LIST_INDEX_REG,
     DATA_TYPES,
 } = require('./constants');
 
@@ -53,24 +54,22 @@ class ExpressionBuilder {
         return hash;
     };
 
-    #__getAttrHash = attr => {
-        const regex = /\[\d+\]/g;
-
-        return attr
+    #__getAttrHash = attr =>
+        attr
             .split('.')
-            .map(attr => {
-                const attrName = attr.replace(regex, '');
+            .map(attrPart => {
+                const attrName = attrPart.replace(LIST_INDEX_REG, '');
+                const indices = attrPart.match(LIST_INDEX_REG);
+
                 const hash = this.#__getNameHash(attrName);
 
-                const indices = attr.match(regex);
-                // Set attribute name to be keyed off of hash  and value without any indices
+                // Set attribute name to be keyed off of hash and value without any indices
                 this.#attributeNames.set(hash, attrName);
 
                 // Add indices back to the hashed value for the update expression
                 return `${hash}${indices ? indices.join('') : ''}`;
             })
             .join('.');
-    };
 
     #__getValHash = val => {
         let hash = getMapKeyFromValue(converter.input(val), this.#attributeValues);
