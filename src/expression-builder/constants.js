@@ -22,18 +22,16 @@ const PREFIX = 'eb';
 
 const LIST_INDEX_REG = /\[\d+\]/g;
 
-const DATA_TYPES = {
-    STRING: 'S',
-    STRING_SET: 'SS',
-    NUMBER: 'N',
-    NUMBER_SET: 'NS',
-    BINARY: 'B',
-    BINARY_SET: 'BS',
-    BOOLEAN: 'BOOL',
-    NULL: 'NULL',
-    LIST: 'L',
-    MAP: 'M',
-};
+const STRING = 'S';
+const STRING_SET = 'SS';
+const NUMBER = 'N';
+const NUMBER_SET = 'NS';
+const BINARY = 'B';
+const BINARY_SET = 'BS';
+const BOOLEAN = 'BOOL';
+const NULL = 'NULL';
+const LIST = 'L';
+const MAP = 'M';
 
 module.exports = {
     EQ,
@@ -54,5 +52,14 @@ module.exports = {
     DELETE,
     PREFIX,
     LIST_INDEX_REG,
-    DATA_TYPES,
+    STRING,
+    STRING_SET,
+    NUMBER,
+    NUMBER_SET,
+    BINARY,
+    BINARY_SET,
+    BOOLEAN,
+    NULL,
+    LIST,
+    MAP,
 };

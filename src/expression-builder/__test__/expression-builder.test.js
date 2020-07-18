@@ -15,7 +15,7 @@ tap.test('Constructor', t => {
     t.end();
 });
 
-tap.test('ComparisonOperators', t => {
+tap.test('Comparison Operators', t => {
     const tableName = 'Test-Table';
     const attr1 = 'Test';
     const attr2 = 'SubTest';
@@ -31,7 +31,7 @@ tap.test('ComparisonOperators', t => {
     };
 
     t.same(
-        new builder(tableName).EQ(attr1, val1).BuildConditionExpression(),
+        new builder(tableName).EQ(attr1, val1).BuildConditionExpressions(),
         expectedEQConditionExpression,
         'should create the EQ condition expression'
     );
@@ -44,7 +44,7 @@ tap.test('ComparisonOperators', t => {
     };
 
     t.same(
-        new builder(tableName).LT(attr1, val1).BuildConditionExpression(),
+        new builder(tableName).LT(attr1, val1).BuildConditionExpressions(),
         expectedLTConditionExpression,
         'should create the LT condition expression'
     );
@@ -57,7 +57,7 @@ tap.test('ComparisonOperators', t => {
     };
 
     t.same(
-        new builder(tableName).LE(attr1, val1).BuildConditionExpression(),
+        new builder(tableName).LE(attr1, val1).BuildConditionExpressions(),
         expectedLEConditionExpression,
         'should create the LE condition expression'
     );
@@ -70,7 +70,7 @@ tap.test('ComparisonOperators', t => {
     };
 
     t.same(
-        new builder(tableName).GT(attr1, val1).BuildConditionExpression(),
+        new builder(tableName).GT(attr1, val1).BuildConditionExpressions(),
         expectedGTConditionExpression,
         'should create the GT condition expression'
     );
@@ -83,7 +83,7 @@ tap.test('ComparisonOperators', t => {
     };
 
     t.same(
-        new builder(tableName).GE(attr1, val1).BuildConditionExpression(),
+        new builder(tableName).GE(attr1, val1).BuildConditionExpressions(),
         expectedGEConditionExpression,
         'should create the GE condition expression'
     );
@@ -100,7 +100,7 @@ tap.test('ComparisonOperators', t => {
             .GE(attr1, val1)
             .AND()
             .LE(attr1, val2)
-            .BuildConditionExpression(),
+            .BuildConditionExpressions(),
         expectedANDConditionExpression,
         'should create the AND condition expression'
     );
@@ -117,7 +117,7 @@ tap.test('ComparisonOperators', t => {
             .GE(attr1, val1)
             .OR()
             .LE(attr1, val2)
-            .BuildConditionExpression(),
+            .BuildConditionExpressions(),
         expectedORConditionExpression,
         'should create the OR condition expression'
     );
@@ -130,7 +130,7 @@ tap.test('ComparisonOperators', t => {
     };
 
     t.same(
-        new builder(tableName).BETWEEN(attr1, val1, val2).BuildConditionExpression(),
+        new builder(tableName).BETWEEN(attr1, val1, val2).BuildConditionExpressions(),
         expectedBETWEENConditionExpression,
         'should create the BETWEEN condition expression'
     );
@@ -151,7 +151,152 @@ tap.test('ComparisonOperators', t => {
             .GroupEnd()
             .OR()
             .EQ(attr3, val2)
-            .BuildConditionExpression(),
+            .BuildConditionExpressions(),
+        expectedGroupedConditionExpression,
+        'should allow logical groupings with GroupStart and GroupEnd functions'
+    );
+
+    t.end();
+});
+
+tap.test('Size Comparison Operators', t => {
+    const tableName = 'Test-Table';
+    const attr1 = 'Test';
+    const attr2 = 'SubTest';
+    const attr3 = 'ThirdAttribute';
+    const val1 = 'Value';
+    const val2 = 'Other Value';
+
+    const expectedEQConditionExpression = {
+        TableName: tableName,
+        ConditionExpression: 'size(#eb_a) = :eb_a',
+        ExpressionAttributeNames: { '#eb_a': attr1 },
+        ExpressionAttributeValues: { ':eb_a': { S: val1 } },
+    };
+
+    t.same(
+        new builder(tableName).SizeEQ(attr1, val1).BuildConditionExpressions(),
+        expectedEQConditionExpression,
+        'should create the SizeEQ condition expression'
+    );
+
+    const expectedLTConditionExpression = {
+        TableName: tableName,
+        ConditionExpression: 'size(#eb_a) < :eb_a',
+        ExpressionAttributeNames: { '#eb_a': attr1 },
+        ExpressionAttributeValues: { ':eb_a': { S: val1 } },
+    };
+
+    t.same(
+        new builder(tableName).SizeLT(attr1, val1).BuildConditionExpressions(),
+        expectedLTConditionExpression,
+        'should create the SizeLT condition expression'
+    );
+
+    const expectedLEConditionExpression = {
+        TableName: tableName,
+        ConditionExpression: 'size(#eb_a) <= :eb_a',
+        ExpressionAttributeNames: { '#eb_a': attr1 },
+        ExpressionAttributeValues: { ':eb_a': { S: val1 } },
+    };
+
+    t.same(
+        new builder(tableName).SizeLE(attr1, val1).BuildConditionExpressions(),
+        expectedLEConditionExpression,
+        'should create the SizeLE condition expression'
+    );
+
+    const expectedGTConditionExpression = {
+        TableName: tableName,
+        ConditionExpression: 'size(#eb_a) > :eb_a',
+        ExpressionAttributeNames: { '#eb_a': attr1 },
+        ExpressionAttributeValues: { ':eb_a': { S: val1 } },
+    };
+
+    t.same(
+        new builder(tableName).SizeGT(attr1, val1).BuildConditionExpressions(),
+        expectedGTConditionExpression,
+        'should create the SizeGT condition expression'
+    );
+
+    const expectedGEConditionExpression = {
+        TableName: tableName,
+        ConditionExpression: 'size(#eb_a) >= :eb_a',
+        ExpressionAttributeNames: { '#eb_a': attr1 },
+        ExpressionAttributeValues: { ':eb_a': { S: val1 } },
+    };
+
+    t.same(
+        new builder(tableName).SizeGE(attr1, val1).BuildConditionExpressions(),
+        expectedGEConditionExpression,
+        'should create the SizeGE condition expression'
+    );
+
+    const expectedANDConditionExpression = {
+        TableName: tableName,
+        ConditionExpression: 'size(#eb_a) >= :eb_a AND size(#eb_a) <= :eb_b',
+        ExpressionAttributeNames: { '#eb_a': attr1 },
+        ExpressionAttributeValues: { ':eb_a': { S: val1 }, ':eb_b': { S: val2 } },
+    };
+
+    t.same(
+        new builder(tableName)
+            .SizeGE(attr1, val1)
+            .AND()
+            .SizeLE(attr1, val2)
+            .BuildConditionExpressions(),
+        expectedANDConditionExpression,
+        'should create the AND condition expression'
+    );
+
+    const expectedORConditionExpression = {
+        TableName: tableName,
+        ConditionExpression: 'size(#eb_a) >= :eb_a OR size(#eb_a) <= :eb_b',
+        ExpressionAttributeNames: { '#eb_a': attr1 },
+        ExpressionAttributeValues: { ':eb_a': { S: val1 }, ':eb_b': { S: val2 } },
+    };
+
+    t.same(
+        new builder(tableName)
+            .SizeGE(attr1, val1)
+            .OR()
+            .SizeLE(attr1, val2)
+            .BuildConditionExpressions(),
+        expectedORConditionExpression,
+        'should create the OR condition expression'
+    );
+
+    const expectedBETWEENConditionExpression = {
+        TableName: tableName,
+        ConditionExpression: 'size(#eb_a) BETWEEN :eb_a AND :eb_b',
+        ExpressionAttributeNames: { '#eb_a': attr1 },
+        ExpressionAttributeValues: { ':eb_a': { S: val1 }, ':eb_b': { S: val2 } },
+    };
+
+    t.same(
+        new builder(tableName).SizeBETWEEN(attr1, val1, val2).BuildConditionExpressions(),
+        expectedBETWEENConditionExpression,
+        'should create the SizeBETWEEN condition expression'
+    );
+
+    const expectedGroupedConditionExpression = {
+        TableName: tableName,
+        ConditionExpression:
+            '( size(#eb_a) = :eb_a AND size(#eb_b) > :eb_b ) OR size(#eb_c) = :eb_b',
+        ExpressionAttributeNames: { '#eb_a': attr1, '#eb_b': attr2, '#eb_c': attr3 },
+        ExpressionAttributeValues: { ':eb_a': { S: val1 }, ':eb_b': { S: val2 } },
+    };
+
+    t.same(
+        new builder(tableName)
+            .GroupStart()
+            .SizeEQ(attr1, val1)
+            .AND()
+            .SizeGT(attr2, val2)
+            .GroupEnd()
+            .OR()
+            .SizeEQ(attr3, val2)
+            .BuildConditionExpressions(),
         expectedGroupedConditionExpression,
         'should allow logical groupings with GroupStart and GroupEnd functions'
     );
@@ -172,7 +317,7 @@ tap.test('AttrExists', t => {
     };
 
     t.same(
-        new builder(tableName).AttrExists(attr1).BuildConditionExpression(),
+        new builder(tableName).AttrExists(attr1).BuildConditionExpressions(),
         expectedAttrExistsConditionExpression,
         'should store attribute and create a condition expression when AttrExists is called'
     );
@@ -184,7 +329,7 @@ tap.test('AttrExists', t => {
     };
 
     t.same(
-        new builder(tableName).AttrExists(`${attr1}.${attr2}`).BuildConditionExpression(),
+        new builder(tableName).AttrExists(`${attr1}.${attr2}`).BuildConditionExpressions(),
         expectedComplexAttrExistsConditionExpression,
         'should store attribute and create a condition expression when AttrExists is called with a complex attribute'
     );
@@ -196,7 +341,7 @@ tap.test('AttrExists', t => {
     };
 
     t.same(
-        new builder(tableName).AttrExists(`${attr1}[1]`).BuildConditionExpression(),
+        new builder(tableName).AttrExists(`${attr1}[1]`).BuildConditionExpressions(),
         expectedIndexedAttrExistsConditionExpression,
         'should store attribute and create a condition expression when AttrExists is called with an indexed attribute'
     );
@@ -208,7 +353,7 @@ tap.test('AttrExists', t => {
     };
 
     t.same(
-        new builder(tableName).AttrExists(`${attr1}.${attr2}[1][0]`).BuildConditionExpression(),
+        new builder(tableName).AttrExists(`${attr1}.${attr2}[1][0]`).BuildConditionExpressions(),
         expectedComplexIndexedAttrExistsConditionExpression,
         'should store attribute and create a condition expression when AttrExists is called with a complex indexed attribute'
     );
@@ -229,7 +374,7 @@ tap.test('AttrNotExists', t => {
     };
 
     t.same(
-        new builder(tableName).AttrNotExists(attr1).BuildConditionExpression(),
+        new builder(tableName).AttrNotExists(attr1).BuildConditionExpressions(),
         expectedAttrNotExistsConditionExpression,
         'should store attribute and create a condition expression when AttrNotExists is called'
     );
@@ -241,7 +386,7 @@ tap.test('AttrNotExists', t => {
     };
 
     t.same(
-        new builder(tableName).AttrNotExists(`${attr1}.${attr2}`).BuildConditionExpression(),
+        new builder(tableName).AttrNotExists(`${attr1}.${attr2}`).BuildConditionExpressions(),
         expectedComplexAttrNotExistsConditionExpression,
         'should store attribute and create a condition expression when AttrNotExists is called with a complex attribute'
     );
@@ -253,7 +398,7 @@ tap.test('AttrNotExists', t => {
     };
 
     t.same(
-        new builder(tableName).AttrNotExists(`${attr1}[1]`).BuildConditionExpression(),
+        new builder(tableName).AttrNotExists(`${attr1}[1]`).BuildConditionExpressions(),
         expectedIndexedAttrNotExistsConditionExpression,
         'should store attribute and create a condition expression when AttrNotExists is called with an indexed attribute'
     );
@@ -265,7 +410,7 @@ tap.test('AttrNotExists', t => {
     };
 
     t.same(
-        new builder(tableName).AttrNotExists(`${attr1}.${attr2}[1][0]`).BuildConditionExpression(),
+        new builder(tableName).AttrNotExists(`${attr1}.${attr2}[1][0]`).BuildConditionExpressions(),
         expectedComplexIndexedAttrNotExistsConditionExpression,
         'should store attribute and create a condition expression when AttrNotExists is called with a complex indexed attribute'
     );
@@ -287,7 +432,7 @@ tap.test('Contains', t => {
     };
 
     t.same(
-        new builder(tableName).Contains(attr1, val1).BuildConditionExpression(),
+        new builder(tableName).Contains(attr1, val1).BuildConditionExpressions(),
         expectedContainsConditionExpression,
         'should store attribute and create a condition expression when Contains is called'
     );
@@ -300,7 +445,7 @@ tap.test('Contains', t => {
     };
 
     t.same(
-        new builder(tableName).Contains(`${attr1}.${attr2}`, val1).BuildConditionExpression(),
+        new builder(tableName).Contains(`${attr1}.${attr2}`, val1).BuildConditionExpressions(),
         expectedComplexContainsConditionExpression,
         'should store attribute and create a condition expression when Contains is called with a complex attribute'
     );
@@ -313,7 +458,7 @@ tap.test('Contains', t => {
     };
 
     t.same(
-        new builder(tableName).Contains(`${attr1}[1]`, val1).BuildConditionExpression(),
+        new builder(tableName).Contains(`${attr1}[1]`, val1).BuildConditionExpressions(),
         expectedIndexedContainsConditionExpression,
         'should store attribute and create a condition expression when Contains is called with an indexed attribute'
     );
@@ -326,7 +471,9 @@ tap.test('Contains', t => {
     };
 
     t.same(
-        new builder(tableName).Contains(`${attr1}.${attr2}[1][0]`, val1).BuildConditionExpression(),
+        new builder(tableName)
+            .Contains(`${attr1}.${attr2}[1][0]`, val1)
+            .BuildConditionExpressions(),
         expectedComplexIndexedContainsConditionExpression,
         'should store attribute and create a condition expression when Contains is called with a complex indexed attribute'
     );
@@ -347,7 +494,7 @@ tap.test('BeginsWith', t => {
     };
 
     t.same(
-        new builder(tableName).BeginsWith(attr1, val1).BuildConditionExpression(),
+        new builder(tableName).BeginsWith(attr1, val1).BuildConditionExpressions(),
         expectedBeginsWithConditionExpression,
         'should store attribute and create a condition expression when BeginsWith is called'
     );
@@ -360,7 +507,7 @@ tap.test('BeginsWith', t => {
     };
 
     t.same(
-        new builder(tableName).BeginsWith(`${attr1}.${attr2}`, val1).BuildConditionExpression(),
+        new builder(tableName).BeginsWith(`${attr1}.${attr2}`, val1).BuildConditionExpressions(),
         expectedComplexBeginsWithConditionExpression,
         'should store attribute and create a condition expression when BeginsWith is called with a complex attribute'
     );
@@ -373,7 +520,7 @@ tap.test('BeginsWith', t => {
     };
 
     t.same(
-        new builder(tableName).BeginsWith(`${attr1}[1]`, val1).BuildConditionExpression(),
+        new builder(tableName).BeginsWith(`${attr1}[1]`, val1).BuildConditionExpressions(),
         expectedIndexedBeginsWithConditionExpression,
         'should store attribute and create a condition expression when BeginsWith is called with an indexed attribute'
     );
@@ -388,7 +535,7 @@ tap.test('BeginsWith', t => {
     t.same(
         new builder(tableName)
             .BeginsWith(`${attr1}.${attr2}[1][0]`, val1)
-            .BuildConditionExpression(),
+            .BuildConditionExpressions(),
         expectedComplexIndexedBeginsWithConditionExpression,
         'should store attribute and create a condition expression when BeginsWith is called with a complex indexed attribute'
     );
@@ -409,7 +556,7 @@ tap.test('Type Assertions', t => {
     };
 
     t.same(
-        new builder(tableName).AssertStringType(attr1).BuildConditionExpression(),
+        new builder(tableName).AssertStringType(attr1).BuildConditionExpressions(),
         expectedStringTypeAssertionConditionExpression,
         'should build an attribute_type function for STRING types using expression attribute names and values'
     );
@@ -422,7 +569,7 @@ tap.test('Type Assertions', t => {
     };
 
     t.same(
-        new builder(tableName).AssertStringSetType(attr1).BuildConditionExpression(),
+        new builder(tableName).AssertStringSetType(attr1).BuildConditionExpressions(),
         expectedStringSetTypeAssertionConditionExpression,
         'should build an attribute_type function for STRING_SET types using expression attribute names and values'
     );
@@ -435,7 +582,7 @@ tap.test('Type Assertions', t => {
     };
 
     t.same(
-        new builder(tableName).AssertNumberType(attr1).BuildConditionExpression(),
+        new builder(tableName).AssertNumberType(attr1).BuildConditionExpressions(),
         expectedNumberTypeAssertionConditionExpression,
         'should build an attribute_type function for NUMBER types using expression attribute names and values'
     );
@@ -448,7 +595,7 @@ tap.test('Type Assertions', t => {
     };
 
     t.same(
-        new builder(tableName).AssertNumberSetType(attr1).BuildConditionExpression(),
+        new builder(tableName).AssertNumberSetType(attr1).BuildConditionExpressions(),
         expectedNumberSetTypeAssertionConditionExpression,
         'should build an attribute_type function for NUMBER_SET types using expression attribute names and values'
     );
@@ -461,7 +608,7 @@ tap.test('Type Assertions', t => {
     };
 
     t.same(
-        new builder(tableName).AssertBinaryType(attr1).BuildConditionExpression(),
+        new builder(tableName).AssertBinaryType(attr1).BuildConditionExpressions(),
         expectedBinaryTypeAssertionConditionExpression,
         'should build an attribute_type function for BINARY types using expression attribute names and values'
     );
@@ -474,7 +621,7 @@ tap.test('Type Assertions', t => {
     };
 
     t.same(
-        new builder(tableName).AssertBinarySetType(attr1).BuildConditionExpression(),
+        new builder(tableName).AssertBinarySetType(attr1).BuildConditionExpressions(),
         expectedBinarySetTypeAssertionConditionExpression,
         'should build an attribute_type function for BINARY_SET types using expression attribute names and values'
     );
@@ -487,7 +634,7 @@ tap.test('Type Assertions', t => {
     };
 
     t.same(
-        new builder(tableName).AssertBooleanType(attr1).BuildConditionExpression(),
+        new builder(tableName).AssertBooleanType(attr1).BuildConditionExpressions(),
         expectedBooleanTypeAssertionConditionExpression,
         'should build an attribute_type function for BOOLEAN types using expression attribute names and values'
     );
@@ -500,7 +647,7 @@ tap.test('Type Assertions', t => {
     };
 
     t.same(
-        new builder(tableName).AssertNullType(attr1).BuildConditionExpression(),
+        new builder(tableName).AssertNullType(attr1).BuildConditionExpressions(),
         expectedNullTypeAssertionConditionExpression,
         'should build an attribute_type function for NULL types using expression attribute names and values'
     );
@@ -513,7 +660,7 @@ tap.test('Type Assertions', t => {
     };
 
     t.same(
-        new builder(tableName).AssertListType(attr1).BuildConditionExpression(),
+        new builder(tableName).AssertListType(attr1).BuildConditionExpressions(),
         expectedListTypeAssertionConditionExpression,
         'should build an attribute_type function for LIST types using expression attribute names and values'
     );
@@ -526,7 +673,7 @@ tap.test('Type Assertions', t => {
     };
 
     t.same(
-        new builder(tableName).AssertMapType(attr1).BuildConditionExpression(),
+        new builder(tableName).AssertMapType(attr1).BuildConditionExpressions(),
         expectedMapTypeAssertionConditionExpression,
         'should build an attribute_type function for MAP types using expression attribute names and values'
     );
@@ -543,7 +690,7 @@ tap.test('Type Assertions', t => {
             .AssertStringType(attr1)
             .AND()
             .AssertStringType(attr2)
-            .BuildConditionExpression(),
+            .BuildConditionExpressions(),
         expectedConcatTypeAssertionConditionExpression,
         'should be able to be concatenated with logical operators'
     );
@@ -556,7 +703,7 @@ tap.test('Type Assertions', t => {
     };
 
     t.same(
-        new builder(tableName).AssertMapType(`${attr1}.${attr2}`).BuildConditionExpression(),
+        new builder(tableName).AssertMapType(`${attr1}.${attr2}`).BuildConditionExpressions(),
         expectedComplexAssertionConditionExpression,
         'should build complex attribute paths'
     );
@@ -569,7 +716,7 @@ tap.test('Type Assertions', t => {
     };
 
     t.same(
-        new builder(tableName).AssertMapType(`${attr1}[0].${attr2}[1]`).BuildConditionExpression(),
+        new builder(tableName).AssertMapType(`${attr1}[0].${attr2}[1]`).BuildConditionExpressions(),
         expectedComplexIndexedAssertionConditionExpression,
         'should build complex indexed attribute paths'
     );

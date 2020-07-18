@@ -21,7 +21,16 @@ const {
     DELETE,
     PREFIX,
     LIST_INDEX_REG,
-    DATA_TYPES,
+    STRING,
+    STRING_SET,
+    NUMBER,
+    NUMBER_SET,
+    BINARY,
+    BINARY_SET,
+    BOOLEAN,
+    NULL,
+    LIST,
+    MAP,
 } = require('./constants');
 
 const { incrementCharacter, getMapKeyFromValue } = require('./utils');
@@ -141,6 +150,38 @@ class ExpressionBuilder {
             .#__addTokenAndValue(AND, val2);
     }
 
+    SizeEQ(attr, val) {
+        const hash = this.#__getAttrHash(attr);
+        return this.#__addToken(`size(${hash})`).#__addTokenAndValue(EQ, val);
+    }
+
+    SizeLT(attr, val) {
+        const hash = this.#__getAttrHash(attr);
+        return this.#__addToken(`size(${hash})`).#__addTokenAndValue(LT, val);
+    }
+
+    SizeLE(attr, val) {
+        const hash = this.#__getAttrHash(attr);
+        return this.#__addToken(`size(${hash})`).#__addTokenAndValue(LE, val);
+    }
+
+    SizeGT(attr, val) {
+        const hash = this.#__getAttrHash(attr);
+        return this.#__addToken(`size(${hash})`).#__addTokenAndValue(GT, val);
+    }
+
+    SizeGE(attr, val) {
+        const hash = this.#__getAttrHash(attr);
+        return this.#__addToken(`size(${hash})`).#__addTokenAndValue(GE, val);
+    }
+
+    SizeBETWEEN(attr, val1, val2) {
+        const hash = this.#__getAttrHash(attr);
+        return this.#__addToken(`size(${hash})`)
+            .#__addTokenAndValue(BETWEEN, val1)
+            .#__addTokenAndValue(AND, val2);
+    }
+
     AND() {
         return this.#__addToken(AND);
     }
@@ -180,43 +221,43 @@ class ExpressionBuilder {
     }
 
     AssertStringType(attr) {
-        return this.#__addAttributeTypeToken(attr, DATA_TYPES.STRING);
+        return this.#__addAttributeTypeToken(attr, STRING);
     }
 
     AssertStringSetType(attr) {
-        return this.#__addAttributeTypeToken(attr, DATA_TYPES.STRING_SET);
+        return this.#__addAttributeTypeToken(attr, STRING_SET);
     }
 
     AssertNumberType(attr) {
-        return this.#__addAttributeTypeToken(attr, DATA_TYPES.NUMBER);
+        return this.#__addAttributeTypeToken(attr, NUMBER);
     }
 
     AssertNumberSetType(attr) {
-        return this.#__addAttributeTypeToken(attr, DATA_TYPES.NUMBER_SET);
+        return this.#__addAttributeTypeToken(attr, NUMBER_SET);
     }
 
     AssertBinaryType(attr) {
-        return this.#__addAttributeTypeToken(attr, DATA_TYPES.BINARY);
+        return this.#__addAttributeTypeToken(attr, BINARY);
     }
 
     AssertBinarySetType(attr) {
-        return this.#__addAttributeTypeToken(attr, DATA_TYPES.BINARY_SET);
+        return this.#__addAttributeTypeToken(attr, BINARY_SET);
     }
 
     AssertBooleanType(attr) {
-        return this.#__addAttributeTypeToken(attr, DATA_TYPES.BOOLEAN);
+        return this.#__addAttributeTypeToken(attr, BOOLEAN);
     }
 
     AssertNullType(attr) {
-        return this.#__addAttributeTypeToken(attr, DATA_TYPES.NULL);
+        return this.#__addAttributeTypeToken(attr, NULL);
     }
 
     AssertListType(attr) {
-        return this.#__addAttributeTypeToken(attr, DATA_TYPES.LIST);
+        return this.#__addAttributeTypeToken(attr, LIST);
     }
 
     AssertMapType(attr) {
-        return this.#__addAttributeTypeToken(attr, DATA_TYPES.MAP);
+        return this.#__addAttributeTypeToken(attr, MAP);
     }
 
     FilterStart() {
@@ -363,7 +404,7 @@ class ExpressionBuilder {
         return response;
     }
 
-    BuildConditionExpression() {
+    BuildConditionExpressions() {
         const response = {
             TableName: this.tableName,
             ConditionExpression: this.ConditionExpression(),
@@ -378,7 +419,7 @@ class ExpressionBuilder {
         return response;
     }
 
-    BuildUpdateExpression() {
+    BuildUpdateExpressions() {
         const response = {
             TableName: this.tableName,
             Key: this.KeyExpression(),
