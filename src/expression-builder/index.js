@@ -53,8 +53,8 @@ class ExpressionBuilder {
     #valCode = 'a';
     #isFilterExpression = false;
 
-    #__getNameHash = attr => {
-        let hash = getMapKeyFromValue(attr, this.#attributeNames);
+    #__getNameHash = attrPath => {
+        let hash = getMapKeyFromValue(attrPath, this.#attributeNames);
         if (!hash) {
             hash = `#${PREFIX}_${this.#attrCode}`;
             this.#attrCode = incrementCharacter(this.#attrCode);
@@ -63,8 +63,8 @@ class ExpressionBuilder {
         return hash;
     };
 
-    #__getAttrHash = attr =>
-        attr
+    #__getAttrHash = attrPath =>
+        attrPath
             .split('.')
             .map(attrPart => {
                 const attrName = attrPart.replace(LIST_INDEX_REG, '');
@@ -92,8 +92,8 @@ class ExpressionBuilder {
         return hash;
     };
 
-    #__addAttribute = attr => {
-        const hash = this.#__getAttrHash(attr);
+    #__addAttribute = attrPath => {
+        const hash = this.#__getAttrHash(attrPath);
         return this.#__addToken(hash);
     };
 
@@ -112,8 +112,8 @@ class ExpressionBuilder {
         return this.#__addToken(token).#__addToken(hash);
     };
 
-    #__addAttributeTypeToken = (attr, type) => {
-        const attrHash = this.#__getAttrHash(attr);
+    #__addAttributeTypeToken = (attrPath, type) => {
+        const attrHash = this.#__getAttrHash(attrPath);
         const typeHash = this.#__getValHash(type);
         return this.#__addToken(`attribute_type(${attrHash}, ${typeHash})`);
     };
@@ -124,59 +124,59 @@ class ExpressionBuilder {
         this.tableName = tableName;
     }
 
-    EQ(attr, val) {
-        return this.#__addAttribute(attr).#__addTokenAndValue(EQ, val);
+    EQ(attrPath, val) {
+        return this.#__addAttribute(attrPath).#__addTokenAndValue(EQ, val);
     }
 
-    LT(attr, val) {
-        return this.#__addAttribute(attr).#__addTokenAndValue(LT, val);
+    LT(attrPath, val) {
+        return this.#__addAttribute(attrPath).#__addTokenAndValue(LT, val);
     }
 
-    GT(attr, val) {
-        return this.#__addAttribute(attr).#__addTokenAndValue(GT, val);
+    GT(attrPath, val) {
+        return this.#__addAttribute(attrPath).#__addTokenAndValue(GT, val);
     }
 
-    LE(attr, val) {
-        return this.#__addAttribute(attr).#__addTokenAndValue(LE, val);
+    LE(attrPath, val) {
+        return this.#__addAttribute(attrPath).#__addTokenAndValue(LE, val);
     }
 
-    GE(attr, val) {
-        return this.#__addAttribute(attr).#__addTokenAndValue(GE, val);
+    GE(attrPath, val) {
+        return this.#__addAttribute(attrPath).#__addTokenAndValue(GE, val);
     }
 
-    BETWEEN(attr, val1, val2) {
-        return this.#__addAttribute(attr)
+    BETWEEN(attrPath, val1, val2) {
+        return this.#__addAttribute(attrPath)
             .#__addTokenAndValue(BETWEEN, val1)
             .#__addTokenAndValue(AND, val2);
     }
 
-    SizeEQ(attr, val) {
-        const hash = this.#__getAttrHash(attr);
+    SizeEQ(attrPath, val) {
+        const hash = this.#__getAttrHash(attrPath);
         return this.#__addToken(`size(${hash})`).#__addTokenAndValue(EQ, val);
     }
 
-    SizeLT(attr, val) {
-        const hash = this.#__getAttrHash(attr);
+    SizeLT(attrPath, val) {
+        const hash = this.#__getAttrHash(attrPath);
         return this.#__addToken(`size(${hash})`).#__addTokenAndValue(LT, val);
     }
 
-    SizeLE(attr, val) {
-        const hash = this.#__getAttrHash(attr);
+    SizeLE(attrPath, val) {
+        const hash = this.#__getAttrHash(attrPath);
         return this.#__addToken(`size(${hash})`).#__addTokenAndValue(LE, val);
     }
 
-    SizeGT(attr, val) {
-        const hash = this.#__getAttrHash(attr);
+    SizeGT(attrPath, val) {
+        const hash = this.#__getAttrHash(attrPath);
         return this.#__addToken(`size(${hash})`).#__addTokenAndValue(GT, val);
     }
 
-    SizeGE(attr, val) {
-        const hash = this.#__getAttrHash(attr);
+    SizeGE(attrPath, val) {
+        const hash = this.#__getAttrHash(attrPath);
         return this.#__addToken(`size(${hash})`).#__addTokenAndValue(GE, val);
     }
 
-    SizeBETWEEN(attr, val1, val2) {
-        const hash = this.#__getAttrHash(attr);
+    SizeBETWEEN(attrPath, val1, val2) {
+        const hash = this.#__getAttrHash(attrPath);
         return this.#__addToken(`size(${hash})`)
             .#__addTokenAndValue(BETWEEN, val1)
             .#__addTokenAndValue(AND, val2);
@@ -198,66 +198,66 @@ class ExpressionBuilder {
         return this.#__addToken(GROUP_END);
     }
 
-    AttrExists(attr) {
-        const hash = this.#__getAttrHash(attr);
+    AttrExists(attrPath) {
+        const hash = this.#__getAttrHash(attrPath);
         return this.#__addToken(`attribute_exists(${hash})`);
     }
 
-    AttrNotExists(attr) {
-        const hash = this.#__getAttrHash(attr);
+    AttrNotExists(attrPath) {
+        const hash = this.#__getAttrHash(attrPath);
         return this.#__addToken(`attribute_not_exists(${hash})`);
     }
 
-    Contains(attr, val) {
-        const attrHash = this.#__getAttrHash(attr);
+    Contains(attrPath, val) {
+        const attrHash = this.#__getAttrHash(attrPath);
         const valHash = this.#__getValHash(val);
         return this.#__addToken(`contains(${attrHash}, ${valHash})`);
     }
 
-    BeginsWith(attr, val) {
-        const attrHash = this.#__getAttrHash(attr);
+    BeginsWith(attrPath, val) {
+        const attrHash = this.#__getAttrHash(attrPath);
         const valHash = this.#__getValHash(val);
         return this.#__addToken(`begins_with(${attrHash}, ${valHash})`);
     }
 
-    AssertStringType(attr) {
-        return this.#__addAttributeTypeToken(attr, STRING);
+    AssertStringType(attrPath) {
+        return this.#__addAttributeTypeToken(attrPath, STRING);
     }
 
-    AssertStringSetType(attr) {
-        return this.#__addAttributeTypeToken(attr, STRING_SET);
+    AssertStringSetType(attrPath) {
+        return this.#__addAttributeTypeToken(attrPath, STRING_SET);
     }
 
-    AssertNumberType(attr) {
-        return this.#__addAttributeTypeToken(attr, NUMBER);
+    AssertNumberType(attrPath) {
+        return this.#__addAttributeTypeToken(attrPath, NUMBER);
     }
 
-    AssertNumberSetType(attr) {
-        return this.#__addAttributeTypeToken(attr, NUMBER_SET);
+    AssertNumberSetType(attrPath) {
+        return this.#__addAttributeTypeToken(attrPath, NUMBER_SET);
     }
 
-    AssertBinaryType(attr) {
-        return this.#__addAttributeTypeToken(attr, BINARY);
+    AssertBinaryType(attrPath) {
+        return this.#__addAttributeTypeToken(attrPath, BINARY);
     }
 
-    AssertBinarySetType(attr) {
-        return this.#__addAttributeTypeToken(attr, BINARY_SET);
+    AssertBinarySetType(attrPath) {
+        return this.#__addAttributeTypeToken(attrPath, BINARY_SET);
     }
 
-    AssertBooleanType(attr) {
-        return this.#__addAttributeTypeToken(attr, BOOLEAN);
+    AssertBooleanType(attrPath) {
+        return this.#__addAttributeTypeToken(attrPath, BOOLEAN);
     }
 
-    AssertNullType(attr) {
-        return this.#__addAttributeTypeToken(attr, NULL);
+    AssertNullType(attrPath) {
+        return this.#__addAttributeTypeToken(attrPath, NULL);
     }
 
-    AssertListType(attr) {
-        return this.#__addAttributeTypeToken(attr, LIST);
+    AssertListType(attrPath) {
+        return this.#__addAttributeTypeToken(attrPath, LIST);
     }
 
-    AssertMapType(attr) {
-        return this.#__addAttributeTypeToken(attr, MAP);
+    AssertMapType(attrPath) {
+        return this.#__addAttributeTypeToken(attrPath, MAP);
     }
 
     FilterStart() {
@@ -278,8 +278,8 @@ class ExpressionBuilder {
         return this;
     }
 
-    Set(attr, val) {
-        const attrHash = this.#__getAttrHash(attr);
+    Set(attrPath, val) {
+        const attrHash = this.#__getAttrHash(attrPath);
         const valHash = this.#__getValHash(val);
 
         this.#setTokens.push(`${attrHash} ${EQ} ${valHash}`);
@@ -287,8 +287,17 @@ class ExpressionBuilder {
         return this;
     }
 
-    SetPlus(attr, val) {
-        const attrHash = this.#__getAttrHash(attr);
+    SetIfNotExists(attrPath, val) {
+        const attrHash = this.#__getAttrHash(attrPath);
+        const valHash = this.#__getValHash(val);
+
+        this.#setTokens.push(`${attrHash} ${EQ} if_not_exists(${attrHash}, ${valHash})`);
+
+        return this;
+    }
+
+    SetPlus(attrPath, val) {
+        const attrHash = this.#__getAttrHash(attrPath);
         const valHash = this.#__getValHash(val);
 
         this.#setTokens.push(`${attrHash} ${EQ} ${attrHash} ${PLUS} ${valHash}`);
@@ -296,8 +305,8 @@ class ExpressionBuilder {
         return this;
     }
 
-    SetMinus(attr, val) {
-        const attrHash = this.#__getAttrHash(attr);
+    SetMinus(attrPath, val) {
+        const attrHash = this.#__getAttrHash(attrPath);
         const valHash = this.#__getValHash(val);
 
         this.#setTokens.push(`${attrHash} ${EQ} ${attrHash} ${MINUS} ${valHash}`);
@@ -305,8 +314,17 @@ class ExpressionBuilder {
         return this;
     }
 
-    Add(attr, val) {
-        const attrHash = this.#__getAttrHash(attr);
+    SetListAppend(attrPath, list) {
+        const attrHash = this.#__getAttrHash(attrPath);
+        const valHash = this.#__getValHash(list);
+
+        this.#setTokens.push(`${attrHash} ${EQ} list_append(${attrHash}, ${valHash})`);
+
+        return this;
+    }
+
+    Add(attrPath, val) {
+        const attrHash = this.#__getAttrHash(attrPath);
         const valHash = this.#__getValHash(val);
 
         this.#addTokens.push(`${attrHash} ${valHash}`);
@@ -314,16 +332,17 @@ class ExpressionBuilder {
         return this;
     }
 
-    AddAttr(attr) {
-        const attrHash = this.#__getAttrHash(attr);
+    Delete(attrPath, val) {
+        const attrHash = this.#__getAttrHash(attrPath);
+        const valHash = this.#__getValHash(val);
 
-        this.#addTokens.push(attrHash);
+        this.#deleteTokens.push(`${attrHash} ${valHash}`);
 
         return this;
     }
 
-    RemoveAttr(attr) {
-        const attrHash = this.#__getAttrHash(attr);
+    Remove(attrPath) {
+        const attrHash = this.#__getAttrHash(attrPath);
 
         this.#removeTokens.push(attrHash);
 
@@ -331,8 +350,8 @@ class ExpressionBuilder {
     }
 
     Projections(projections) {
-        projections.forEach(attr => {
-            const attrHash = this.#__getAttrHash(attr);
+        projections.forEach(attrPath => {
+            const attrHash = this.#__getAttrHash(attrPath);
             this.#projectionTokens.add(attrHash);
         });
 
@@ -425,8 +444,12 @@ class ExpressionBuilder {
             Key: this.KeyExpression(),
             UpdateExpression: this.UpdateExpression(),
             ExpressionAttributeNames: this.ExpressionAttributeNames(),
-            ExpressionAttributeValues: this.ExpressionAttributeValues(),
         };
+
+        const ExpressionAttributeValues = this.ExpressionAttributeValues();
+        if (Object.values(ExpressionAttributeValues).length) {
+            response.ExpressionAttributeValues = ExpressionAttributeValues;
+        }
 
         const ConditionExpression = this.ConditionExpression();
         if (ConditionExpression) {

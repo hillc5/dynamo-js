@@ -879,3 +879,578 @@ tap.test('BuildQueryExpressions', t => {
 
     t.end();
 });
+
+tap.test('BuildUpdateExpression', t => {
+    const tableName = 'test-table';
+    const partitionKey = 'PartitionAttribute';
+    const sortKey = 'SortAttribute';
+    const key = { PK: partitionKey, SK: sortKey };
+
+    const attr1 = 'Test-Attribute';
+    const attr2 = 'Another-Test-Attribute';
+    const attr3 = 'Third-Attribute';
+    const val1 = 'Test Value';
+    const val2 = 'Another Test Value';
+    const val3 = 'Third Test Value';
+
+    const numVal1 = 2;
+    const numVal2 = 42;
+    const numVal3 = 1;
+
+    const listVal1 = [2];
+    const listVal2 = [42, 2];
+    const listVal3 = [1, 2, 3];
+
+    const expectedDefaultShape = {
+        TableName: tableName,
+        Key: {},
+        UpdateExpression: '',
+        ExpressionAttributeNames: {},
+    };
+
+    t.same(
+        new builder(tableName).BuildUpdateExpressions(),
+        expectedDefaultShape,
+        'should include "TableName", "Key", "UpdateExpression", and "ExpressionAttributeNames"'
+    );
+
+    const expectedKeyShape = {
+        TableName: tableName,
+        Key: { PK: { S: partitionKey }, SK: { S: sortKey } },
+        UpdateExpression: '',
+        ExpressionAttributeNames: {},
+    };
+
+    t.same(
+        new builder(tableName).Key(key).BuildUpdateExpressions(),
+        expectedKeyShape,
+        'should add correct typing for key object when Key is called'
+    );
+
+    const expectedSetShape = {
+        TableName: tableName,
+        Key: { PK: { S: partitionKey }, SK: { S: sortKey } },
+        UpdateExpression: 'SET #eb_a = :eb_a',
+        ExpressionAttributeNames: { '#eb_a': attr1 },
+        ExpressionAttributeValues: { ':eb_a': { S: val1 } },
+    };
+
+    t.same(
+        new builder(tableName)
+            .Key(key)
+            .Set(attr1, val1)
+            .BuildUpdateExpressions(),
+        expectedSetShape,
+        'should build the expressions correctly when the Set function is called once for a simple attribute path'
+    );
+
+    const expectedMultipleSetShape = {
+        TableName: tableName,
+        Key: { PK: { S: partitionKey }, SK: { S: sortKey } },
+        UpdateExpression: 'SET #eb_a = :eb_a, #eb_b = :eb_b, #eb_c = :eb_c',
+        ExpressionAttributeNames: { '#eb_a': attr1, '#eb_b': attr2, '#eb_c': attr3 },
+        ExpressionAttributeValues: {
+            ':eb_a': { S: val1 },
+            ':eb_b': { S: val2 },
+            ':eb_c': { S: val3 },
+        },
+    };
+
+    t.same(
+        new builder(tableName)
+            .Key(key)
+            .Set(attr1, val1)
+            .Set(attr2, val2)
+            .Set(attr3, val3)
+            .BuildUpdateExpressions(),
+        expectedMultipleSetShape,
+        'should build the expressions correctly when the Set function is called more than once for simple attribute paths'
+    );
+
+    const expectedMultipleComplexSetShape = {
+        TableName: tableName,
+        Key: { PK: { S: partitionKey }, SK: { S: sortKey } },
+        UpdateExpression: 'SET #eb_a.#eb_b = :eb_a, #eb_a[0].#eb_b[1] = :eb_b, #eb_c[0][1] = :eb_c',
+        ExpressionAttributeNames: { '#eb_a': attr1, '#eb_b': attr2, '#eb_c': attr3 },
+        ExpressionAttributeValues: {
+            ':eb_a': { S: val1 },
+            ':eb_b': { S: val2 },
+            ':eb_c': { S: val3 },
+        },
+    };
+
+    t.same(
+        new builder(tableName)
+            .Key(key)
+            .Set(`${attr1}.${attr2}`, val1)
+            .Set(`${attr1}[0].${attr2}[1]`, val2)
+            .Set(`${attr3}[0][1]`, val3)
+            .BuildUpdateExpressions(),
+        expectedMultipleComplexSetShape,
+        'should build the expressions correctly when the Set function is called more than once for complex and indexed attribute paths'
+    );
+
+    const expectedSetIfNotExistsShape = {
+        TableName: tableName,
+        Key: { PK: { S: partitionKey }, SK: { S: sortKey } },
+        UpdateExpression: 'SET #eb_a = if_not_exists(#eb_a, :eb_a)',
+        ExpressionAttributeNames: { '#eb_a': attr1 },
+        ExpressionAttributeValues: { ':eb_a': { S: val1 } },
+    };
+
+    t.same(
+        new builder(tableName)
+            .Key(key)
+            .SetIfNotExists(attr1, val1)
+            .BuildUpdateExpressions(),
+        expectedSetIfNotExistsShape,
+        'should build the expressions correctly when the SetIfNotExists function is called once for a simple attribute path'
+    );
+
+    const expectedMultipleSetIfNotExistsShape = {
+        TableName: tableName,
+        Key: { PK: { S: partitionKey }, SK: { S: sortKey } },
+        UpdateExpression:
+            'SET #eb_a = if_not_exists(#eb_a, :eb_a), #eb_b = if_not_exists(#eb_b, :eb_b), #eb_c = if_not_exists(#eb_c, :eb_c)',
+        ExpressionAttributeNames: { '#eb_a': attr1, '#eb_b': attr2, '#eb_c': attr3 },
+        ExpressionAttributeValues: {
+            ':eb_a': { S: val1 },
+            ':eb_b': { S: val2 },
+            ':eb_c': { S: val3 },
+        },
+    };
+
+    t.same(
+        new builder(tableName)
+            .Key(key)
+            .SetIfNotExists(attr1, val1)
+            .SetIfNotExists(attr2, val2)
+            .SetIfNotExists(attr3, val3)
+            .BuildUpdateExpressions(),
+        expectedMultipleSetIfNotExistsShape,
+        'should build the expressions correctly when the SetIfNotExists function is called more than once for simple attribute paths'
+    );
+
+    const expectedMultipleComplexSetIfNotExistsShape = {
+        TableName: tableName,
+        Key: { PK: { S: partitionKey }, SK: { S: sortKey } },
+        UpdateExpression:
+            'SET #eb_a.#eb_b = if_not_exists(#eb_a.#eb_b, :eb_a), #eb_a[0].#eb_b[1] = if_not_exists(#eb_a[0].#eb_b[1], :eb_b), #eb_c[0][1] = if_not_exists(#eb_c[0][1], :eb_c)',
+        ExpressionAttributeNames: { '#eb_a': attr1, '#eb_b': attr2, '#eb_c': attr3 },
+        ExpressionAttributeValues: {
+            ':eb_a': { S: val1 },
+            ':eb_b': { S: val2 },
+            ':eb_c': { S: val3 },
+        },
+    };
+
+    t.same(
+        new builder(tableName)
+            .Key(key)
+            .SetIfNotExists(`${attr1}.${attr2}`, val1)
+            .SetIfNotExists(`${attr1}[0].${attr2}[1]`, val2)
+            .SetIfNotExists(`${attr3}[0][1]`, val3)
+            .BuildUpdateExpressions(),
+        expectedMultipleComplexSetIfNotExistsShape,
+        'should build the expressions correctly when the SetIfNotExists function is called more than once for complex and indexed attribute paths'
+    );
+
+    const expectedSetPlusShape = {
+        TableName: tableName,
+        Key: { PK: { S: partitionKey }, SK: { S: sortKey } },
+        UpdateExpression: 'SET #eb_a = #eb_a + :eb_a',
+        ExpressionAttributeNames: { '#eb_a': attr1 },
+        ExpressionAttributeValues: { ':eb_a': { N: numVal1 } },
+    };
+
+    t.same(
+        new builder(tableName)
+            .Key(key)
+            .SetPlus(attr1, numVal1)
+            .BuildUpdateExpressions(),
+        expectedSetPlusShape,
+        'should build the expressions correctly when the SetPlus function is called once for a simple attribute path'
+    );
+
+    const expectedMultipleSetPlusShape = {
+        TableName: tableName,
+        Key: { PK: { S: partitionKey }, SK: { S: sortKey } },
+        UpdateExpression: 'SET #eb_a = #eb_a + :eb_a, #eb_b = #eb_b + :eb_b, #eb_c = #eb_c + :eb_c',
+        ExpressionAttributeNames: { '#eb_a': attr1, '#eb_b': attr2, '#eb_c': attr3 },
+        ExpressionAttributeValues: {
+            ':eb_a': { N: numVal1 },
+            ':eb_b': { N: numVal2 },
+            ':eb_c': { N: numVal3 },
+        },
+    };
+
+    t.same(
+        new builder(tableName)
+            .Key(key)
+            .SetPlus(attr1, numVal1)
+            .SetPlus(attr2, numVal2)
+            .SetPlus(attr3, numVal3)
+            .BuildUpdateExpressions(),
+        expectedMultipleSetPlusShape,
+        'should build the expressions correctly when the SetPlus function is called more than once for simple attribute paths'
+    );
+
+    const expectedMultipleComplexSetPlusShape = {
+        TableName: tableName,
+        Key: { PK: { S: partitionKey }, SK: { S: sortKey } },
+        UpdateExpression:
+            'SET #eb_a.#eb_b = #eb_a.#eb_b + :eb_a, #eb_a[0].#eb_b[1] = #eb_a[0].#eb_b[1] + :eb_b, #eb_c[0][1] = #eb_c[0][1] + :eb_c',
+        ExpressionAttributeNames: { '#eb_a': attr1, '#eb_b': attr2, '#eb_c': attr3 },
+        ExpressionAttributeValues: {
+            ':eb_a': { N: numVal1 },
+            ':eb_b': { N: numVal2 },
+            ':eb_c': { N: numVal3 },
+        },
+    };
+
+    t.same(
+        new builder(tableName)
+            .Key(key)
+            .SetPlus(`${attr1}.${attr2}`, numVal1)
+            .SetPlus(`${attr1}[0].${attr2}[1]`, numVal2)
+            .SetPlus(`${attr3}[0][1]`, numVal3)
+            .BuildUpdateExpressions(),
+        expectedMultipleComplexSetPlusShape,
+        'should build the expressions correctly when the SetPlus function is called more than once for complex and indexed attribute paths'
+    );
+
+    const expectedSetMinusShape = {
+        TableName: tableName,
+        Key: { PK: { S: partitionKey }, SK: { S: sortKey } },
+        UpdateExpression: 'SET #eb_a = #eb_a - :eb_a',
+        ExpressionAttributeNames: { '#eb_a': attr1 },
+        ExpressionAttributeValues: { ':eb_a': { N: numVal1 } },
+    };
+
+    t.same(
+        new builder(tableName)
+            .Key(key)
+            .SetMinus(attr1, numVal1)
+            .BuildUpdateExpressions(),
+        expectedSetMinusShape,
+        'should build the expressions correctly when the SetMinus function is called once for a simple attribute path'
+    );
+
+    const expectedMultipleSetMinusShape = {
+        TableName: tableName,
+        Key: { PK: { S: partitionKey }, SK: { S: sortKey } },
+        UpdateExpression: 'SET #eb_a = #eb_a - :eb_a, #eb_b = #eb_b - :eb_b, #eb_c = #eb_c - :eb_c',
+        ExpressionAttributeNames: { '#eb_a': attr1, '#eb_b': attr2, '#eb_c': attr3 },
+        ExpressionAttributeValues: {
+            ':eb_a': { N: numVal1 },
+            ':eb_b': { N: numVal2 },
+            ':eb_c': { N: numVal3 },
+        },
+    };
+
+    t.same(
+        new builder(tableName)
+            .Key(key)
+            .SetMinus(attr1, numVal1)
+            .SetMinus(attr2, numVal2)
+            .SetMinus(attr3, numVal3)
+            .BuildUpdateExpressions(),
+        expectedMultipleSetMinusShape,
+        'should build the expressions correctly when the SetMinus function is called more than once for simple attribute paths'
+    );
+
+    const expectedMultipleComplexSetMinusShape = {
+        TableName: tableName,
+        Key: { PK: { S: partitionKey }, SK: { S: sortKey } },
+        UpdateExpression:
+            'SET #eb_a.#eb_b = #eb_a.#eb_b - :eb_a, #eb_a[0].#eb_b[1] = #eb_a[0].#eb_b[1] - :eb_b, #eb_c[0][1] = #eb_c[0][1] - :eb_c',
+        ExpressionAttributeNames: { '#eb_a': attr1, '#eb_b': attr2, '#eb_c': attr3 },
+        ExpressionAttributeValues: {
+            ':eb_a': { N: numVal1 },
+            ':eb_b': { N: numVal2 },
+            ':eb_c': { N: numVal3 },
+        },
+    };
+
+    t.same(
+        new builder(tableName)
+            .Key(key)
+            .SetMinus(`${attr1}.${attr2}`, numVal1)
+            .SetMinus(`${attr1}[0].${attr2}[1]`, numVal2)
+            .SetMinus(`${attr3}[0][1]`, numVal3)
+            .BuildUpdateExpressions(),
+        expectedMultipleComplexSetMinusShape,
+        'should build the expressions correctly when the SetMinus function is called more than once for complex and indexed attribute paths'
+    );
+
+    const expectedSetListAppendShape = {
+        TableName: tableName,
+        Key: { PK: { S: partitionKey }, SK: { S: sortKey } },
+        UpdateExpression: 'SET #eb_a = list_append(#eb_a, :eb_a)',
+        ExpressionAttributeNames: { '#eb_a': attr1 },
+        ExpressionAttributeValues: { ':eb_a': { L: [{ N: 2 }] } },
+    };
+
+    t.same(
+        new builder(tableName)
+            .Key(key)
+            .SetListAppend(attr1, listVal1)
+            .BuildUpdateExpressions(),
+        expectedSetListAppendShape,
+        'should build the expressions correctly when the SetListAppend function is called once for a simple attribute path'
+    );
+
+    const expectedMultipleSetListAppendShape = {
+        TableName: tableName,
+        Key: { PK: { S: partitionKey }, SK: { S: sortKey } },
+        UpdateExpression:
+            'SET #eb_a = list_append(#eb_a, :eb_a), #eb_b = list_append(#eb_b, :eb_b), #eb_c = list_append(#eb_c, :eb_c)',
+        ExpressionAttributeNames: { '#eb_a': attr1, '#eb_b': attr2, '#eb_c': attr3 },
+        ExpressionAttributeValues: {
+            ':eb_a': { L: [{ N: 2 }] },
+            ':eb_b': { L: [{ N: 42 }, { N: 2 }] },
+            ':eb_c': { L: [{ N: 1 }, { N: 2 }, { N: 3 }] },
+        },
+    };
+
+    t.same(
+        new builder(tableName)
+            .Key(key)
+            .SetListAppend(attr1, listVal1)
+            .SetListAppend(attr2, listVal2)
+            .SetListAppend(attr3, listVal3)
+            .BuildUpdateExpressions(),
+        expectedMultipleSetListAppendShape,
+        'should build the expressions correctly when the SetListAppend function is called more than once for simple attribute paths'
+    );
+
+    const expectedMultipleComplexSetListAppendShape = {
+        TableName: tableName,
+        Key: { PK: { S: partitionKey }, SK: { S: sortKey } },
+        UpdateExpression:
+            'SET #eb_a.#eb_b = list_append(#eb_a.#eb_b, :eb_a), #eb_a[0].#eb_b[1] = list_append(#eb_a[0].#eb_b[1], :eb_b), #eb_c[0][1] = list_append(#eb_c[0][1], :eb_c)',
+        ExpressionAttributeNames: { '#eb_a': attr1, '#eb_b': attr2, '#eb_c': attr3 },
+        ExpressionAttributeValues: {
+            ':eb_a': { L: [{ N: 2 }] },
+            ':eb_b': { L: [{ N: 42 }, { N: 2 }] },
+            ':eb_c': { L: [{ N: 1 }, { N: 2 }, { N: 3 }] },
+        },
+    };
+
+    t.same(
+        new builder(tableName)
+            .Key(key)
+            .SetListAppend(`${attr1}.${attr2}`, listVal1)
+            .SetListAppend(`${attr1}[0].${attr2}[1]`, listVal2)
+            .SetListAppend(`${attr3}[0][1]`, listVal3)
+            .BuildUpdateExpressions(),
+        expectedMultipleComplexSetListAppendShape,
+        'should build the expressions correctly when the SetListAppend function is called more than once for complex and indexed attribute paths'
+    );
+
+    const expectedSimpleAddShape = {
+        TableName: tableName,
+        Key: { PK: { S: partitionKey }, SK: { S: sortKey } },
+        UpdateExpression: 'ADD #eb_a :eb_a',
+        ExpressionAttributeNames: { '#eb_a': attr1 },
+        ExpressionAttributeValues: { ':eb_a': { S: val1 } },
+    };
+
+    t.same(
+        new builder(tableName)
+            .Key(key)
+            .Add(attr1, val1)
+            .BuildUpdateExpressions(),
+        expectedSimpleAddShape,
+        'should build the expressions correctly when the Add function is called once for a simple attribute path'
+    );
+
+    const expectedSimpleIndexedAddShape = {
+        TableName: tableName,
+        Key: { PK: { S: partitionKey }, SK: { S: sortKey } },
+        UpdateExpression: 'ADD #eb_a :eb_a, #eb_b :eb_b',
+        ExpressionAttributeNames: { '#eb_a': attr1, '#eb_b': attr2 },
+        ExpressionAttributeValues: { ':eb_a': { S: val1 }, ':eb_b': { S: val2 } },
+    };
+
+    t.same(
+        new builder(tableName)
+            .Key(key)
+            .Add(attr1, val1)
+            .Add(attr2, val2)
+            .BuildUpdateExpressions(),
+        expectedSimpleIndexedAddShape,
+        'should build the expressions correctly when the Add function is called more than once for a simple attribute path'
+    );
+
+    const expectedComplexAddShape = {
+        TableName: tableName,
+        Key: { PK: { S: partitionKey }, SK: { S: sortKey } },
+        UpdateExpression: 'ADD #eb_a[0].#eb_b[1] :eb_a',
+        ExpressionAttributeNames: { '#eb_a': attr1, '#eb_b': attr2 },
+        ExpressionAttributeValues: { ':eb_a': { S: val1 } },
+    };
+
+    t.same(
+        new builder(tableName)
+            .Key(key)
+            .Add(`${attr1}[0].${attr2}[1]`, val1)
+            .BuildUpdateExpressions(),
+        expectedComplexAddShape,
+        'should build the expressions correctly when the add function is called once with a complex indexed attribute path'
+    );
+
+    const expectedSimpleDeleteShape = {
+        TableName: tableName,
+        Key: { PK: { S: partitionKey }, SK: { S: sortKey } },
+        UpdateExpression: 'DELETE #eb_a :eb_a',
+        ExpressionAttributeNames: { '#eb_a': attr1 },
+        ExpressionAttributeValues: { ':eb_a': { S: val1 } },
+    };
+
+    t.same(
+        new builder(tableName)
+            .Key(key)
+            .Delete(attr1, val1)
+            .BuildUpdateExpressions(),
+        expectedSimpleDeleteShape,
+        'should build the expressions correctly when the Delete function is called once for a simple attribute path'
+    );
+
+    const expectedSimpleIndexedDeleteShape = {
+        TableName: tableName,
+        Key: { PK: { S: partitionKey }, SK: { S: sortKey } },
+        UpdateExpression: 'DELETE #eb_a :eb_a, #eb_b :eb_b',
+        ExpressionAttributeNames: { '#eb_a': attr1, '#eb_b': attr2 },
+        ExpressionAttributeValues: { ':eb_a': { S: val1 }, ':eb_b': { S: val2 } },
+    };
+
+    t.same(
+        new builder(tableName)
+            .Key(key)
+            .Delete(attr1, val1)
+            .Delete(attr2, val2)
+            .BuildUpdateExpressions(),
+        expectedSimpleIndexedDeleteShape,
+        'should build the expressions correctly when the Delete function is called more than once for a simple attribute path'
+    );
+
+    const expectedComplexDeleteShape = {
+        TableName: tableName,
+        Key: { PK: { S: partitionKey }, SK: { S: sortKey } },
+        UpdateExpression: 'DELETE #eb_a[0].#eb_b[1] :eb_a',
+        ExpressionAttributeNames: { '#eb_a': attr1, '#eb_b': attr2 },
+        ExpressionAttributeValues: { ':eb_a': { S: val1 } },
+    };
+
+    t.same(
+        new builder(tableName)
+            .Key(key)
+            .Delete(`${attr1}[0].${attr2}[1]`, val1)
+            .BuildUpdateExpressions(),
+        expectedComplexDeleteShape,
+        'should build the expressions correctly when the Delete function is called once with a complex indexed attribute path'
+    );
+
+    const expectedSimpleRemoveShape = {
+        TableName: tableName,
+        Key: { PK: { S: partitionKey }, SK: { S: sortKey } },
+        UpdateExpression: 'REMOVE #eb_a',
+        ExpressionAttributeNames: { '#eb_a': attr1 },
+    };
+
+    t.same(
+        new builder(tableName)
+            .Key(key)
+            .Remove(attr1, val1)
+            .BuildUpdateExpressions(),
+        expectedSimpleRemoveShape,
+        'should build the expressions correctly when the Remove function is called once for a simple attribute path'
+    );
+
+    const expectedSimpleIndexedRemoveShape = {
+        TableName: tableName,
+        Key: { PK: { S: partitionKey }, SK: { S: sortKey } },
+        UpdateExpression: 'REMOVE #eb_a, #eb_b',
+        ExpressionAttributeNames: { '#eb_a': attr1, '#eb_b': attr2 },
+    };
+
+    t.same(
+        new builder(tableName)
+            .Key(key)
+            .Remove(attr1, val1)
+            .Remove(attr2, val2)
+            .BuildUpdateExpressions(),
+        expectedSimpleIndexedRemoveShape,
+        'should build the expressions correctly when the Remove function is called more than once for a simple attribute path'
+    );
+
+    const expectedComplexRemoveShape = {
+        TableName: tableName,
+        Key: { PK: { S: partitionKey }, SK: { S: sortKey } },
+        UpdateExpression: 'REMOVE #eb_a[0].#eb_b[1]',
+        ExpressionAttributeNames: { '#eb_a': attr1, '#eb_b': attr2 },
+    };
+
+    t.same(
+        new builder(tableName)
+            .Key(key)
+            .Remove(`${attr1}[0].${attr2}[1]`, val1)
+            .BuildUpdateExpressions(),
+        expectedComplexRemoveShape,
+        'should build the expressions correctly when the Remove function is called once with a complex indexed attribute path'
+    );
+
+    const expectedMultiUpdateShape = {
+        TableName: tableName,
+        Key: { PK: { S: partitionKey }, SK: { S: sortKey } },
+        UpdateExpression: 'SET #eb_b = :eb_a REMOVE #eb_a DELETE #eb_c :eb_b',
+        ExpressionAttributeNames: { '#eb_a': attr1, '#eb_b': attr2, '#eb_c': attr3 },
+        ExpressionAttributeValues: {
+            ':eb_a': { S: val2 },
+            ':eb_b': { L: [{ N: '1' }, { N: '2' }, { N: '3' }] },
+        },
+    };
+
+    t.same(
+        new builder(tableName)
+            .Key(key)
+            .Remove(attr1)
+            .Set(attr2, val2)
+            .Delete(attr3, listVal3)
+            .BuildUpdateExpressions(),
+        expectedMultiUpdateShape,
+        'should allow multiple update commands to be called'
+    );
+
+    const expectedConditionUpdateShape = {
+        TableName: tableName,
+        Key: { PK: { S: partitionKey }, SK: { S: sortKey } },
+        UpdateExpression: 'SET #eb_b = :eb_a REMOVE #eb_a DELETE #eb_c :eb_b',
+        ExpressionAttributeNames: { '#eb_a': attr1, '#eb_b': attr2, '#eb_c': attr3 },
+        ExpressionAttributeValues: {
+            ':eb_a': { S: val2 },
+            ':eb_b': { L: [{ N: '1' }, { N: '2' }, { N: '3' }] },
+        },
+        ConditionExpression:
+            'attribute_exists(#eb_a) AND attribute_exists(#eb_b) AND attribute_exists(#eb_c)',
+    };
+
+    t.same(
+        new builder(tableName)
+            .Key(key)
+            .Remove(attr1)
+            .Set(attr2, val2)
+            .Delete(attr3, listVal3)
+            .AttrExists(attr1)
+            .AND()
+            .AttrExists(attr2)
+            .AND()
+            .AttrExists(attr3)
+            .BuildUpdateExpressions(),
+        expectedConditionUpdateShape,
+        'should allow a ConditionExpression to be built'
+    );
+
+    t.end();
+});
