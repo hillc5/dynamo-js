@@ -35,9 +35,38 @@ const {
 
 const { incrementCharacter, getMapKeyFromValue } = require('./utils');
 
+/**
+ * ExpressionBuilder provides a convenient builder pattern implementation
+ * for creating DynamoDB query, condition, and update expressions.
+ *
+ * Users can utilize built in methods to build up expression objects that
+ * can be passed directly the aws-sdk dynamo client representing the
+ * queries, condition expressions, and update expressions for their needs.
+ */
 class ExpressionBuilder {
+    /**
+     * private attributeNames property stores a mapping
+     * of automatic expression attribute names to given attributes
+     *
+     * @type {Map}
+     */
     #attributeNames = new Map();
+
+    /**
+     * private attributeValues property stores a mapping
+     * of automatic expression attribute values to automatically
+     * typed objects for given values.
+     *
+     * @type {Map}
+     */
     #attributeValues = new Map();
+
+    /**
+     * private keys property stores a mapping of given key object
+     * property names to automatically typed objects for their values
+
+     * @type {Map}
+     */
     #keys = new Map();
 
     #expressionTokens = [];
