@@ -1,10 +1,12 @@
 {
-    "name": "dynamo-js",
+    "name": "@charlie/dynamo-expression-builder",
     "version": "0.0.1",
     "description": "Dynamodb client for javascript",
-    "main": "index.js",
+    "main": "./lib/index.js",
     "scripts": {
-        "test": "tap -R specy -w"
+        "test": "tap -R specy -w",
+        "build": "babel src --out-dir lib",
+        "prepublish": "npm run build"
     },
     "keywords": [
         "dynamodb",
@@ -15,10 +17,16 @@
     "author": "Charles Hill",
     "license": "ISC",
     "dependencies": {
+        "@babel/polyfill": "^7.10.4",
         "aws-sdk": "^2.699.0",
+        "core-js": "^3.6.5",
         "lodash.isequal": "^4.5.0"
     },
     "devDependencies": {
+        "@babel/cli": "^7.10.5",
+        "@babel/core": "^7.11.1",
+        "@babel/plugin-proposal-private-methods": "^7.10.4",
+        "@babel/preset-env": "^7.11.0",
         "prettier": "^2.0.5",
         "tap": "^14.10.7"
     }
